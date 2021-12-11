@@ -2,7 +2,7 @@
 FC = g++
 FCLAGS = -g -O3 -Wall -Werror -std=c++11
 
-SOURCE = /Users/albertobassi/Documents/Computational_Physics/functions.cpp main.cpp
+SOURCE = /Users/albertobassi/Documents/Molecular-Dynamics/functions.cpp main.cpp
 
 all: main
 
