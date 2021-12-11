@@ -27,11 +27,11 @@ int main()
   A.savecell_LookUpTable("cell_LookUpTable.txt");
   A.saveConfiguration("particles.txt"); 
   
-  /*
+  
   // Uniform the system
   MarkovSampler MC;
   MC.__init__(5000, 0.1);
-  MC.CanonicalSampler(A);*/
+  MC.CanonicalSampler(A);
 
   
   
