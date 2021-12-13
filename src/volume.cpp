@@ -217,6 +217,13 @@ void volume::__init__(const unsigned& N_target, const double& phi_target, const 
   T = T_target;
   kinetic_en = 3.0/2.0*T*N; // Set the kinetic energy according to the input temperature
   
+  // Check if the packing factor is sufficiently small
+  unsigned N_max = L/sigma_target;
+  if(N > N_max*N_max*N_max)
+  {debug<<"Error: packing factor too high. Program aborted."<<endl;
+  abort();}
+
+
   // Open debug file
   debug.open("debug_log.txt");
   if(debug.is_open()==false){
@@ -255,16 +262,12 @@ void volume::fill(){
   // Fill the volume compactly with N particles of random velocities such that the total momentum of the system is 0 and the temperature is T
   clock_t start, end; // Clocks to compute total time
   particle temp; // Temporary particle
+  unsigned N_max = L/temp.sigma;
   // Random generator
   default_random_engine generator;
   uniform_real_distribution<double> uniform(-0.5,0.5);
   
-  
-  unsigned N_max = L/temp.sigma;
-  
-  if(N > N_max*N_max*N_max)
-  {debug<<"Error: packing factor too high. Program aborted."<<endl;
-  abort();}
+ 
 
   // Generate N non-overlapping particles with centers in the box [-L/2,L/2]^3
   start = clock();

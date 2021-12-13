@@ -139,6 +139,7 @@ void MarkovSampler::CanonicalSampler(cell_volume &A){
         A.configuration[i] = *proposal;
       }
       else{++accepted_attempts;}
+
     }
     
     if(move%100 == 0){

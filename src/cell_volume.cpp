@@ -44,15 +44,25 @@ void cell_volume::__init__(const unsigned& N_target, const unsigned& M_max_targe
   rc = L/((double) M_max);
   T = T_target;
   kinetic_en = 3.0/2.0*T*N; // Set the kinetic energy according to the input temperature
-  
-  
 
+  // Check if the packing factor is sufficiently small
+  unsigned N_max = L/sigma_target;
+  if(N > N_max*N_max*N_max)
+  {cout<<"Error: packing factor too high. Program aborted."<<endl;
+  abort();}
+
+  // Check if every particle is sufficiently small to stay inside a cell
+  if(rc < sigma_target*0.5){
+    cout<<"Warning: rc is too small. Automatically set rc as the minimum value >= sigma/2."<<endl;
+    M_max = (int) L*2.0*1/sigma_target;
+    rc = L/((double) M_max);
+  }
+  
   // Open debug file
   debug.open("debug_log.txt");
   if(debug.is_open()==false){
     cout<<"Opening error (Backtrace: __init__() -> open debug file): impossible to open debug file."<<endl;
   }
-  
 
   // Allocate memory
   configuration = new particle[N];
@@ -218,6 +228,8 @@ int cell_volume::determine_overlap(const unsigned&i){
   int nonoverlapping = 1;
   for(unsigned l=0; l<27; ++l){
     unsigned ind = *(indexes+l);
+    //cout<<"ind "<<ind<<endl;
+    //cout<<"cell list ind size "<<cell_list[ind].size();
     for(unsigned n=0; n<cell_list[ind].size(); ++n){
         unsigned j = cell_list[ind][n];
         if(i != j){
@@ -226,8 +238,9 @@ int cell_volume::determine_overlap(const unsigned&i){
           else {nonoverlapping *= 0;}
         }
     }
-    
+    //cout<<" nonoverlapping "<<nonoverlapping<<endl;
   }
+  
   return nonoverlapping;
 }
 
@@ -314,6 +327,7 @@ void cell_volume::calculate_forces(const double& eps, const double& sig){
 
 void cell_volume::md_step(const double& dt, const double& eps, const double& sig){
   /* Update particle positions and velocties according to Verlet algorithm
+  Warning: till now this dynamics consider particles as points without dimension
   Pay attention to call fill_lists() and getcell_LookUpTable() in the right places
   Parameters:
   dt = (double) time step
