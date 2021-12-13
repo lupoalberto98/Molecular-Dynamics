@@ -2,7 +2,8 @@
 FC = g++
 FCLAGS = -g -O3 -Wall -Werror -std=c++11
 
-SOURCE = /Users/albertobassi/Documents/Molecular-Dynamics/functions.cpp main.cpp
+
+SOURCE = volume.cpp cell_volume.cpp sampler.cpp main.cpp
 
 all: main
 

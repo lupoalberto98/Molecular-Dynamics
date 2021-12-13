@@ -1,4 +1,4 @@
-#include "/Users/albertobassi/Documents/Molecular-Dynamics/functions.h"
+#include "header.h"
 using namespace std;
 
 int main()
