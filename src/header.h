@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
+#include <complex>
 
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
@@ -112,6 +113,10 @@ class volume
 
 class cell_volume : public volume
 {
+    /**
+     * @brief 
+     * 
+     */
     public:
     unsigned M_max;
     double rc;
@@ -139,6 +144,7 @@ class cell_volume : public volume
     void calculate_forces(const double&, const double&);
     void md_step(const double&, const double&, const double&);
     void md_dynamics(const double&, const double&, const double&, const double&);
+    complex<double> calculate_ssf(const vec&);
 
 };
 

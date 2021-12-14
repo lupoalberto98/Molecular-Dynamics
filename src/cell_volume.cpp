@@ -7,33 +7,40 @@ using namespace std;
 // Class cell_volume
 
 cell_volume::cell_volume(){
-  /* Initialize the cell volume
-  Parameters:
-  M_max = (unsigned) maximum number of cells per direction
-  rc = cell length
-  */
+  /**
+   * @brief Default inizializator of cell_volume
+   * 
+   */
   M_max = 1;
   rc = L;
   potential = 0.0;
 }
 
 cell_volume::~cell_volume(){
+  /**
+   * @brief Default destructor of cell_volume
+   * 
+   */
   delete[] cell_list;
   delete[] particle_list;
   delete[] cell_LookUpTable;
 }
 
 void cell_volume::__init__(const unsigned& N_target, const unsigned& M_max_target, const double& phi_target, const double& T_target, const double& sigma_target){
-  /* Overloaded initializator for cell volume
-  Parameters:
-   Parameters:
-  N_target = (unsigned) number of particles
-  M_max_target = (unsigned) maximum number of cells per direction
-  phi_target = (double) packing factor
-  T_target = (double) temeprature
-  sigma_target = (double) diameter of particles
-  */
-
+  /**
+   * @brief Overloaded initializator of cell_volume class
+   * 
+   * Before initialization, check if the packing factor is too high, abort the program otherwise.
+   * Check if M_max is too small. We want particles not to escape neighbouring cells
+   * Finally allocate the memory.
+   * 
+   * @param N_target is the number of particles that we want to fill the volume with
+   * @param M_max_target is the number of particles per coordinate direction that we want to divide the volume with
+   * @param phi_target is the desired packing factor
+   * @param T_target is the desired Temperature of initial configuration
+   * @param sigma_target is the desired diameter of particles
+   * 
+   */
 
   // Set constant parameters
   N = N_target;
@@ -73,12 +80,14 @@ void cell_volume::__init__(const unsigned& N_target, const unsigned& M_max_targe
 }
 
 vec cell_volume::get_center_cell(const unsigned &m){
-  /* Return the coordinates of the celle of index m
-  Parameters:
-  m = (unsigned) index of the cell
-  Returns:
-  center = (vec) coordinates of the center
-  */
+  /**
+   * @brief Copmute the coordinates of the cell labeled with index m
+   * 
+   * @param m is the index of the cell
+   * @return the vector center of the cell
+   * 
+   */
+
   vec center;
   unsigned i = m%M_max;
   unsigned j = (m/M_max)%M_max;
@@ -90,12 +99,14 @@ vec cell_volume::get_center_cell(const unsigned &m){
 }
 
 unsigned cell_volume::get_index_cell(vec &A){
-  /* Give the index of the  cell in which a vector is located
-  Parameters:
-  A = (vec) point in the volume
-  Returns:
-  i = (unsigned) index of the cell in which A is located
-  */
+  /**
+   * @brief Compute the index of the cell in which a vector is located
+   * 
+   * @param A is the vector to consider
+   * @return the index of its cell
+   * 
+   */
+
   applyPbc(A); // First trasnslate back the vector into the volume
   unsigned i =  (A.x+L/2)/rc;
   unsigned j = (A.y+L/2)/rc;
@@ -104,16 +115,21 @@ unsigned cell_volume::get_index_cell(vec &A){
 }
 
 void cell_volume::empty_cell_list(){
-  /* Empty the cell list
-  */
+  /**
+   * @brief Empty cell_list
+   * 
+   */
   for(unsigned m=0; m<M_max*M_max*M_max; ++m){
     cell_list[m].clear();
   }
 }
 
 void cell_volume::fill_lists(){
-  /* Save in particle list the cell indexes of the particles
-  Save in cell list the indexes of particles in the cell
+  /**
+   * @brief Compute cell_list and particle_list
+   * 
+   * Save in cell_list the indexes of the particles whose center lies inside.
+   * Save in particle_list the index of the cell in which it lies
    */
   empty_cell_list();
   for(unsigned n=0; n<N; ++n){
@@ -124,10 +140,12 @@ void cell_volume::fill_lists(){
 }
 
 void cell_volume::save_particle_list(string filename){
-  /* Save particle_list in a file
-  Parameters:
-  filename = (string) name of the file
-  */
+  /**
+   * @brief Save particle_list in a file
+   * 
+   * @param filename is the name of the file
+   * 
+   */
   ofstream out(filename);
   for(unsigned n=0; n<N; ++n){
     out<<particle_list[n]<<endl;
@@ -136,10 +154,12 @@ void cell_volume::save_particle_list(string filename){
 }
 
 void cell_volume::save_cell_list(string filename){
-  /* Save cell_list in a file
-  Parameters:
-  filename = (string) name of the file
-  */
+  /**
+   * @brief Save cell_list in a file
+   * 
+   * @param filename is the name of the file
+   * 
+   */
   ofstream out(filename);
   for(unsigned m=0; m<M_max*M_max*M_max; ++m){
     for(unsigned j=0; j<cell_list[m].size(); ++j){
@@ -151,12 +171,11 @@ void cell_volume::save_cell_list(string filename){
 }
 
 unsigned* cell_volume::nearest_cells(const unsigned &m){
-  /* Return the pointer to an array containing the indexes of 
-  all the neighbouring cells, with pbc, of m (included)
-  Parameters:
-  m = (unsigned) index of the cell
-  Returns:
-  indexes = (unsigned*) poiinter to an array containing the indexes of neighbouring cells
+  /**
+   * @brief Compute neighbouring cells indexes
+   * @param m is the index of a cell
+   * @return the pointer to an array containing the indexes of all the neighbouring cells, with pbc, of m (included)
+   * 
   */
   unsigned *indexes = new unsigned[27];
   vec *center = new vec;
@@ -178,9 +197,14 @@ unsigned* cell_volume::nearest_cells(const unsigned &m){
 }
 
 void cell_volume::getcell_LookUpTable(){
-  /* Determine if the particle of index i has an overlap with the particles in the neighbouring cells
-  First fill_lists() must be called
-  */
+  /**
+   * @brief Compute look up table
+   * 
+   * Determine inter particles distances between particles in neighbouring cells
+   * Before fill_lists() must be called
+   * 
+   */
+  
   for(unsigned i=0; i<N; ++i){
     cell_LookUpTable[i].clear();
     unsigned m = get_index_cell(configuration[i]);
@@ -204,6 +228,12 @@ void cell_volume::getcell_LookUpTable(){
 }
 
 void cell_volume::savecell_LookUpTable(string filename){
+  /**
+   * @brief Save cell_LookUpTable in a file
+   * 
+   * @param filename is the name of the file
+   * 
+   */
   ofstream out(filename);
   for(unsigned n=0; n<N; ++n){
     for(unsigned j=0; j<cell_LookUpTable[n].size(); ++j){
@@ -215,13 +245,16 @@ void cell_volume::savecell_LookUpTable(string filename){
 }
 
 int cell_volume::determine_overlap(const unsigned&i){
-  /* Determine if the particle of index i has an overlap with the particles in the neighbouring cells
-  First fill_lists() must be called
-  Parameters:
-  i = (const unsigned&) index of the particle, passed by reference
-  Returns:
-  nonoverlapping = (int) if 1 there is an overlap with a particle in theneighbouring cells at lest, otherwise 0.
-  */
+  /**
+   * @brief Determine if a particle overlaps with neighbouring ones
+   * 
+   * First fill_lists() must be called
+   * 
+   * @param i is the index of the particle
+   * @return 1 if the particle does not overlap, 0 otherwise
+   * 
+   */
+  
   unsigned m = get_index_cell(configuration[i]);
   unsigned *indexes = new unsigned[27];
   indexes = nearest_cells(m);
@@ -238,18 +271,20 @@ int cell_volume::determine_overlap(const unsigned&i){
           else {nonoverlapping *= 0;}
         }
     }
-    //cout<<" nonoverlapping "<<nonoverlapping<<endl;
   }
   
   return nonoverlapping;
 }
 
 double cell_volume::getXminAverage(){
-  /* Compute the minimum average distance between particles by looking at neighbouring cells in the cell_LookUpTable
-  First getcell_LookUpTable() must be called
-  Returns:
-  xMinAverage = (double) the average minuminum distance
-  */
+  /**
+   * @brief Compute minimum average distance
+   * 
+   * First getcell_LookUpTable() must be called
+   * 
+   * @return minium average distance between particles 
+   */
+
  double xMinAverage = 0.0;
  for(unsigned n=0; n<N; ++n){
     xMinAverage += *min_element((*(cell_LookUpTable+n)).begin(), (*(cell_LookUpTable+n)).end());
@@ -258,14 +293,14 @@ double cell_volume::getXminAverage(){
 }
 
 void cell_volume::calculate_potential(const double& eps, const double& sig){
-  /* Computes the WCA potential of the system
-  First getcell_LookUpTable() must be called
-  Parameters:
-  eps = (double) energy scale of the system
-  sig = (double) length scale of the system
-  Returns:
-  void -> update potential
-  */
+  /**
+   * @brief Compute WCA potential of the system
+   * 
+   * @param eps is the energy scale
+   * @param sig is the lenght scale 
+   * 
+   */
+
   double r_cut = pow(2.0,1.0/6.0)*sig;
   potential = 0.0;
   for(unsigned n=0; n<N; ++n){
@@ -280,12 +315,16 @@ void cell_volume::calculate_potential(const double& eps, const double& sig){
 }
 
 void cell_volume::calculate_forces(const double& eps, const double& sig){
-  /* Compute the forces acting on each particles
-  First fill_lists() must be called
-  Parameters:
-  eps = (double) energy scale of the system
-  sig = (double) length scale of the system
-  */
+  /**
+   * @brief Compute total force acting on each particle
+   * 
+   * First fill_lists() must be called
+   * 
+   * @param eps is the energy scale of the system
+   * @param sig is the length scale of the system 
+   * 
+   */
+
   double r_cut = pow(2.0,1.0/6.0)*sig;
   for(unsigned n=0; n<N; ++n){
     // Set forces to zero
@@ -326,14 +365,18 @@ void cell_volume::calculate_forces(const double& eps, const double& sig){
 }
 
 void cell_volume::md_step(const double& dt, const double& eps, const double& sig){
-  /* Update particle positions and velocties according to Verlet algorithm
-  Warning: till now this dynamics consider particles as points without dimension
-  Pay attention to call fill_lists() and getcell_LookUpTable() in the right places
-  Parameters:
-  dt = (double) time step
-  eps = (double) energy scale of the system
-  sig = (double) length scale of the system
-  */
+  /**
+   * @brief Update particle positions and velocties according to Verlet algorithm
+   * 
+   * Warning: till now this dynamics consider particles as points without dimension
+   * Pay attention to call fill_lists() and getcell_LookUpTable() in the right order
+   * 
+   * @param dt is the temporal step
+   * @param eps is the energy scale of the system
+   * @param sig is the lenght scale of the system
+   * 
+   */
+  
   fill_lists();
   calculate_forces(eps, sig);
   for(unsigned n=0; n<N; ++n){
@@ -351,7 +394,6 @@ void cell_volume::md_step(const double& dt, const double& eps, const double& sig
       debug<<"Overlap error (Backtrace: MD -> overlap after intermidiate step): particle "<<n+1<<" overlaps with some particle"<<endl;
     }
   }
-
   
   // Update forces
   fill_lists();
@@ -365,13 +407,16 @@ void cell_volume::md_step(const double& dt, const double& eps, const double& sig
 }
 
 void cell_volume::md_dynamics(const double& total_time, const double& dt, const double& eps, const double& sig){
-  /* Update particle positions and velocties according to Verlet algorithm
-  Parameters:
-  total_time = (double) total simulation time
-  dt = (double) time step
-  eps = (double) energy scale of the system
-  sig = (double) length scale of the system
-  */
+  /**
+   * @brief Perform molecular dynamics for many steps
+   * 
+   * @param total_time is the time of the simulation
+   * @param dt is the temporal step
+   * @param eps is the energy scale of the system
+   * @param sig is the lenght scale of the system
+   * 
+   */
+  
   unsigned num_steps = total_time/dt;
   clock_t start, end;
   start = clock();
@@ -382,6 +427,7 @@ void cell_volume::md_dynamics(const double& total_time, const double& dt, const 
     getcell_LookUpTable();
     get_kinetic_en();
     calculate_potential(eps, sig);
+    double total_en = kinetic_en + potential;
     if(step%10 ==0){
       out<<step<<" "<<kinetic_en<<" "<<potential<<" "<<kinetic_en+potential<<endl;
     }
@@ -392,3 +438,25 @@ void cell_volume::md_dynamics(const double& total_time, const double& dt, const 
 
 }
 
+complex<double> cell_volume::calculate_ssf(const vec& q){
+  /** Compute the static strcuture factor of WCA potential.
+   *
+   * Compute the term entering in average brackets that should be averaged during the mlecular dynamics.
+   * See Exercises/CS08_2021.pdf for more details.
+   * cell_LookUpTable() must be called before.
+   * 
+   * @param q a vector of length 2*PI/L in the reciprocal space
+   * @return a complex number needed to compute the static structure factor
+  */
+
+  complex<double> ssf = 0.0;
+
+  // Loop over all possible pairs of particles in neighbouring cells
+  for(unsigned i=0; i<N; ++i){
+    for(unsigned j=0; j<cell_LookUpTable[i].size(); ++j){
+      ssf += exp(1i*dot(q, getVector(configuration[i], configuration[j])));
+    }
+  }
+
+  return ssf;
+}
