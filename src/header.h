@@ -3,11 +3,12 @@
 #include <cmath>
 #include <fstream>
 #include <random>
-#include <math.h>
+//#include <math.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
+#include <complex>
 
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
@@ -48,6 +49,7 @@ class vec
     double distance(vec);
 };
 
+double dot(const vec&, const vec&);
 vec getVector(const vec&, const vec&);
 vec getVersor(const vec&, const vec&);
 
@@ -111,6 +113,10 @@ class volume
 
 class cell_volume : public volume
 {
+    /**
+     * @brief 
+     * 
+     */
     public:
     unsigned M_max;
     double rc;
@@ -137,7 +143,9 @@ class cell_volume : public volume
     void calculate_potential(const double&, const double&);
     void calculate_forces(const double&, const double&);
     void md_step(const double&, const double&, const double&);
+    void mix_system(const double&, const double&, const double&, const unsigned&, const double&);
     void md_dynamics(const double&, const double&, const double&, const double&);
+    complex<double> calculate_ssf(const vec&);
 
 };
 

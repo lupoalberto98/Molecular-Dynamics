@@ -6,7 +6,7 @@ int main()
 {
   srand(0);
   cell_volume A;
-  A.__init__(1000, 10, 0.3, 1.0, 1.0);
+  A.__init__(1000, 10, 0.45, 1.0, 1.0);
   
   // Generate the configuration 
   A.fill(); 
@@ -28,15 +28,19 @@ int main()
   A.saveConfiguration("particles.txt"); 
   
   
+  /*
   // Uniform the system
   MarkovSampler MC;
   MC.__init__(5000, 0.1);
   MC.CanonicalSampler(A);
+*/
+
+  // Equilibrate the sytems with mix_system
+  A.mix_system(0.001, 1, 1, 100, 0.1);
 
   
-  
   // Molecular dynamics
-  A.md_dynamics(10, 0.001, 1, 1);
+  //A.md_dynamics(10, 0.001, 1, 1);
   
   
   // Final calculations
