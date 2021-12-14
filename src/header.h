@@ -48,6 +48,7 @@ class vec
     double distance(vec);
 };
 
+double dot(const vec&, const vec&);
 vec getVector(const vec&, const vec&);
 vec getVersor(const vec&, const vec&);
 

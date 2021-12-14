@@ -6,7 +6,7 @@ int main()
 {
   srand(0);
   cell_volume A;
-  A.__init__(1000, 10, 0.3, 1.0, 1.0);
+  A.__init__(1000, 10, 0.45, 1.0, 1.0);
   
   // Generate the configuration 
   A.fill(); 

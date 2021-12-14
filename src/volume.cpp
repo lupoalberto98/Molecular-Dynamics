@@ -135,6 +135,8 @@ double vec::distance(vec B){
   return sqrt(rx*rx + ry*ry + rz*rz);
 }
 
+
+// Functions using vecs
 vec getVector(const vec&A, const vec& B){
   // Get the vector  pointing from B to A
   vec C;
@@ -152,6 +154,10 @@ vec getVersor(const vec&A, const vec& B){
   C.y = C.y/norm;
   C.z = C.z/norm;
   return C;
+}
+
+double dot(const vec &a, const vec &b){
+  return a.x*b.x + a.y*b.y +a.z*b.z;
 }
 
 // Class particle
