@@ -405,10 +405,57 @@ void cell_volume::md_step(const double& dt, const double& eps, const double& sig
     configuration[n].vz += dt/(2.0*configuration[n].mass)*configuration[n].fz;
   }
 }
+void cell_volume::mix_system(const double& dt, const double& eps, const double& sig, const unsigned& steps_av = 100, const double& threshold = 0.1){
+  /**
+   * @brief Run molecular dynamics unitl equilibration
+   * 
+   * @param steps_av is the number of steps to average over
+   * 
+   */
+
+  // Run md until equilibration, print number of steps.
+  // Compute averages every 100 steps
+  unsigned eq_step = 0;
+  double en_var = 100000; // Set high value not to stop the cycle at the first itaration
+  double en_av = 0.0;
+  double square_en_av = 0.0;
+  cout<<"Mixing the system..."<<endl;
+  do {
+    // Perform md step
+    md_step(dt, eps, sig); // lists already updated in md_step
+
+    // Compute kinetic energy
+    get_kinetic_en();
+
+    // Update averages
+    en_av += kinetic_en;
+    square_en_av += kinetic_en*kinetic_en;
+
+    if(eq_step%steps_av == 0 && eq_step != 0){
+      // Renormalize
+      en_av /= (double) steps_av;
+      square_en_av /= (double) steps_av;
+      en_var = square_en_av - en_av*en_av;
+      cout<<"Kinetic energy variance "<<en_var<<endl;
+      en_av = 0.0;
+      square_en_av = 0.0;
+    }
+
+    ++eq_step;
+  } while( en_var > threshold);
+
+  cout<<"System equilibrated in "<<eq_step<<" steps."<<endl;
+
+}
 
 void cell_volume::md_dynamics(const double& total_time, const double& dt, const double& eps, const double& sig){
   /**
    * @brief Perform molecular dynamics for many steps
+   * 
+   * Also compute the static structure factor, the pressure, energy fluctuations, the temperature of the system and heat capacity.
+   * Determine automatically when to average after mixing time
+   * by running the md dynamics until energy fluctuations 
+   * Print statistics in a file for plotting.
    * 
    * @param total_time is the time of the simulation
    * @param dt is the temporal step
@@ -416,20 +463,22 @@ void cell_volume::md_dynamics(const double& total_time, const double& dt, const 
    * @param sig is the lenght scale of the system
    * 
    */
-  
+
   unsigned num_steps = total_time/dt;
   clock_t start, end;
+
+ 
   start = clock();
   cout<<"Performing molecular dynamics..."<<endl;
   ofstream out("energy.txt");
   for(unsigned step=0; step<num_steps; ++step){
-    md_step(dt, eps, sig);
+    md_step(dt, eps, sig); // lists already updated in md_step
     getcell_LookUpTable();
     get_kinetic_en();
     calculate_potential(eps, sig);
     double total_en = kinetic_en + potential;
     if(step%10 ==0){
-      out<<step<<" "<<kinetic_en<<" "<<potential<<" "<<kinetic_en+potential<<endl;
+      out<<step<<" "<<kinetic_en<<" "<<potential<<" "<<total_en<<endl;
     }
   }
   end = clock();
@@ -454,9 +503,8 @@ complex<double> cell_volume::calculate_ssf(const vec& q){
   // Loop over all possible pairs of particles in neighbouring cells
   for(unsigned i=0; i<N; ++i){
     for(unsigned j=0; j<cell_LookUpTable[i].size(); ++j){
-      ssf += exp(1i*dot(q, getVector(configuration[i], configuration[j])));
+      ssf += exp(dot(q, getVector(configuration[i], configuration[j])));
     }
   }
-
   return ssf;
 }
