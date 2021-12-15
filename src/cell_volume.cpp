@@ -261,8 +261,6 @@ int cell_volume::determine_overlap(const unsigned&i){
   int nonoverlapping = 1;
   for(unsigned l=0; l<27; ++l){
     unsigned ind = *(indexes+l);
-    //cout<<"ind "<<ind<<endl;
-    //cout<<"cell list ind size "<<cell_list[ind].size();
     for(unsigned n=0; n<cell_list[ind].size(); ++n){
         unsigned j = cell_list[ind][n];
         if(i != j){
@@ -296,6 +294,8 @@ void cell_volume::calculate_potential(const double& eps, const double& sig){
   /**
    * @brief Compute WCA potential of the system
    * 
+   * getcell_LookUpTable() must be called before
+   * 
    * @param eps is the energy scale
    * @param sig is the lenght scale 
    * 
@@ -318,7 +318,7 @@ void cell_volume::calculate_forces(const double& eps, const double& sig){
   /**
    * @brief Compute total force acting on each particle
    * 
-   * First fill_lists() must be called
+   * fill_lists() must be called before
    * 
    * @param eps is the energy scale of the system
    * @param sig is the length scale of the system 
@@ -389,6 +389,7 @@ void cell_volume::md_step(const double& dt, const double& eps, const double& sig
     configuration[n].y += dt*configuration[n].vy;
     configuration[n].z += dt*configuration[n].vz;
     applyPbc(configuration[n]);
+    fill_lists();
     int nonoverlapping = determine_overlap(n);
     if(nonoverlapping==0){
       debug<<"Overlap error (Backtrace: MD -> overlap after intermidiate step): particle "<<n+1<<" overlaps with some particle"<<endl;
