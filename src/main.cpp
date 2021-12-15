@@ -44,7 +44,10 @@ int main()
   // Molecular dynamics
   A.md_equilibrate(10000, 0.001, 1, 1, 1);
 
- 
+  // Compute ssf for q = vec(0)
+  vec q;
+  complex<double> ssf = A.calculate_ssf(q, 0.001, 1, 1);
+  cout<<real(ssf)<<" "<<imag(ssf)<<endl;
   
   
   // Final calculations

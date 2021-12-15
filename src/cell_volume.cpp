@@ -407,39 +407,14 @@ void cell_volume::md_step(const double& dt, const double& eps, const double& sig
   }
 }
 
-complex<double> cell_volume::calculate_ssf(const vec& q){
-  /** 
-   * @brief Compute the static strcuture factor of WCA potential.
-   *
-   * Compute the term entering in average brackets that should be averaged during the mlecular dynamics.
-   * See Exercises/CS08_2021.pdf for more details.
-   * cell_LookUpTable() must be called before.
-   * 
-   * @param q a vector of length 2*PI/L in the reciprocal space
-   * @return a complex number needed to compute the static structure factor
-  */
-
-  complex<double> ssf = 0.0;
-  const complex<double> I(0.0,1.0);    
-
-  // Loop over all possible pairs of particles in neighbouring cells
-  for(unsigned i=0; i<N; ++i){
-    for(unsigned j=0; j<cell_LookUpTable[i].size(); ++j){
-      ssf += exp(I*dot(q, getVector(configuration[i], configuration[j])));
-    }
-  }
-  return ssf;
-}
 
 
 void cell_volume::md_equilibrate(const unsigned& num_steps, const double& dt, const double& eps, const double& sig, const double& T0){
   /**
    * @brief Perform molecular dynamics for many steps
    * 
-   * Also compute the static structure factor, the pressure, energy fluctuations, the temperature of the system and heat capacity.
-   * Determine automatically when to average after mixing time
-   * by running the md dynamics until energy fluctuations 
-   * Print statistics in a file for plotting.
+   * Equilibrate the system for a certain number of steps, by computing the average kinetic energy after a certain number of steps
+   * and rescaling velocities to match the input temperature
    * 
    * @param num_steps is the number of steps during equilibration
    * @param dt is the temporal step
@@ -449,7 +424,7 @@ void cell_volume::md_equilibrate(const unsigned& num_steps, const double& dt, co
    * 
    */
 
-  unsigned step_av = num_steps/10;
+  unsigned step_av = num_steps/10;  
   unsigned save_step = num_steps/1000;
   double ken_mean = 0;
   unsigned count = 0;
@@ -474,7 +449,7 @@ void cell_volume::md_equilibrate(const unsigned& num_steps, const double& dt, co
         ken_mean /= (double) count;
       
         // Compute the temperature
-        T = 2./3.*1./N*ken_mean;
+        T = 2./(3.*N)*ken_mean;
 
         // Rescale velocities to match input temperature
         for(unsigned n=0; n<N; ++n){
@@ -496,4 +471,45 @@ void cell_volume::md_equilibrate(const unsigned& num_steps, const double& dt, co
 
 }
 
+
+complex<double> cell_volume::calculate_ssf(const vec& q, const double& dt, const double& eps, const double& sig){
+  /** 
+   * @brief Compute the static strcuture factor of WCA potential.
+   *
+   * Compute the term entering in average brackets that should be averaged during the mlecular dynamics.
+   * See Exercises/CS08_2021.pdf for more details.
+   * cell_LookUpTable() must be called before.
+   * 
+   * 
+   * 
+   * 
+  */
+
+  unsigned num_steps = 10000;
+  unsigned step_av = num_steps/10;  // typically 1000
+  unsigned save_step = num_steps/1000; // typically 10
+  complex<double> ssf = 0.0;
+  unsigned count = 0;
+  const complex<double> I(0.0,1.0);   
+
+  for(unsigned step=0; step<num_steps; ++step){
+    md_step(dt, eps, sig);
+    if(step%save_step == 0){
+      // Loop over all possible pairs of particles in neighbouring cells
+      for(unsigned i=0; i<N; ++i){
+        for(unsigned j=0; j<cell_LookUpTable[i].size(); ++j){
+          ssf += exp(I*dot(q, getVector(configuration[i], configuration[j])));
+        }
+      }
+
+      ++count;
+      if(step%step_av == 0){
+        ssf /= count;
+        ssf = ssf/((double) N)+1.;
+      }
+    }
+  }
+return ssf;
+  
+}
 

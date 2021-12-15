@@ -200,8 +200,8 @@ class cell_volume : public volume
     void calculate_potential(const double&, const double&);
     void calculate_forces(const double&, const double&);
     void md_step(const double&, const double&, const double&);
-    complex<double> calculate_ssf(const vec&);
     void md_equilibrate(const unsigned&, const double&, const double&, const double&, const double&);
+    complex<double> calculate_ssf(const vec&, const double&, const double&, const double&);
 };
 
 class MarkovSampler 
