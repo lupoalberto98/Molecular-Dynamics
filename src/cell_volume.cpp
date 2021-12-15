@@ -485,11 +485,12 @@ complex<double> cell_volume::calculate_ssf(const vec& q){
   */
 
   complex<double> ssf = 0.0;
+  const complex<double> I(0.0,1.0);    
 
   // Loop over all possible pairs of particles in neighbouring cells
   for(unsigned i=0; i<N; ++i){
     for(unsigned j=0; j<cell_LookUpTable[i].size(); ++j){
-      ssf += exp(dot(q, getVector(configuration[i], configuration[j])));
+      ssf += exp(I*dot(q, getVector(configuration[i], configuration[j])));
     }
   }
   return ssf;
