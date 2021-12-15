@@ -24,6 +24,16 @@ double two_point_corr(vector <double>, int);
 
 class lattice
 {
+    /**
+     * @brief Z2 lattice
+     * 
+     * @param N_1 is the horizontal dimension
+     * @param N_2 is the vertical dimension
+     * @param J is the energy constant of Ising model
+     * @param Pbc determines periodic boundary conditions
+     * @param grid is the actual lattice
+     * 
+     */
     public:
     unsigned N_1, N_2;
     double J;
@@ -41,6 +51,14 @@ class lattice
 
 class vec
 {
+    /**
+     * @brief 3d vector
+     * 
+     * @param x is first coordinate dimension
+     * @param y is the second coordinate dimension
+     * @param z is the third coordinate dimension
+     * 
+     */
     public:
     double x, y, z;
 
@@ -56,8 +74,22 @@ vec getVersor(const vec&, const vec&);
 
 class particle : public vec
 {
+    /**
+     * @brief Physical particle
+     * 
+     * @param sigma is the diameter
+     * @param mass is the mass
+     * @param kinetic_en is the kinetic energy
+     * @param vx is x velocity
+     * @param vy is y velocity
+     * @param vz is z velocity
+     * @param fx is the x force acting on it
+     * @param fy is the y force acting on it
+     * @param fz is the z force acting on it
+     * 
+     */
     public:
-    double sigma; // Diameter
+    double sigma; 
     double mass; 
     double kinetic_en;
     double vx, vy, vz, fx, fy, fz;
@@ -70,20 +102,37 @@ class particle : public vec
 
 class volume 
 {
+    /**
+     * @brief Physical volume filled with particles
+     * 
+     * @param N is the number of particles
+     * @param phi is the packing factor
+     * @param rho is the density
+     * @param L is the lenght of cubical box
+     * @param T is the temperature of the system
+     * @param kinetic_en is the kinetic energy of the configuration
+     * @param Cv is the specific heat at constant volume
+     * @param debuf is a file where to print debug logs
+     * @param cdm is the center of mass of the particles
+     * @param mom is the total momentum of the configuration
+     * @param configuration is a pointer to the particle list
+     * @param LookUpTable is a pointer to the look up table storing all inter-particle distances
+     * 
+     */
     public:
-    unsigned N; // Target of particles to generate
-    double phi; // Packing factor
-    double rho; // Density
-    double L; // Box side length
-    double T; // Temperature of the system
-    double kinetic_en; // Kinetic energy
+    unsigned N; 
+    double phi; 
+    double rho; 
+    double L; 
+    double T; 
+    double kinetic_en; 
     double Cv;
 
     ofstream debug;
-    vec cdm; // Center of mass
-    vec mom; // Total momentum of the system
-    particle *configuration; // Sequence of particles
-    double *LookUpTable; // Look up table for inter-particle distances
+    vec cdm; 
+    vec mom;
+    particle *configuration; 
+    double *LookUpTable; 
     
 
     volume();
@@ -116,7 +165,13 @@ class volume
 class cell_volume : public volume
 {
     /**
-     * @brief 
+     * @brief Physical volume structured in cells
+     * 
+     * @param M_max is the maximum number of cells per coordinate dimension
+     * @param rc is the lenght of cubical cell
+     * @param potential is the potential energy of the system
+     * @param cell_list is a pointer to the cell list storing all the indexes of prticles belonging to each cell
+     * @param cell_LookUpTable is the inter-particle distance between particles in neighbouring cells
      * 
      */
     public:
@@ -152,6 +207,13 @@ class cell_volume : public volume
 
 class MarkovSampler 
 {
+    /**
+     * @brief Perform Monte Carlo simulation on a volume or cell_volume
+     * 
+     * @param moves is the number of MC sweeps
+     * @param delta is the lenght of which each particle is moved at each MC step
+     * 
+     */
     public:
     unsigned moves;
     double delta;
