@@ -405,48 +405,8 @@ void cell_volume::md_step(const double& dt, const double& eps, const double& sig
     configuration[n].vz += dt/(2.0*configuration[n].mass)*configuration[n].fz;
   }
 }
-void cell_volume::mix_system(const double& dt, const double& eps, const double& sig, const unsigned& steps_av = 100, const double& threshold = 0.1){
-  /**
-   * @brief Run molecular dynamics unitl equilibration
-   * 
-   * @param steps_av is the number of steps to average over
-   * 
-   */
 
-  // Run md until equilibration, print number of steps.
-  // Compute averages every 100 steps
-  unsigned eq_step = 0;
-  double en_var = 100000; // Set high value not to stop the cycle at the first itaration
-  double en_av = 0.0;
-  double square_en_av = 0.0;
-  cout<<"Mixing the system..."<<endl;
-  do {
-    // Perform md step
-    md_step(dt, eps, sig); // lists already updated in md_step
 
-    // Compute kinetic energy
-    get_kinetic_en();
-
-    // Update averages
-    en_av += kinetic_en;
-    square_en_av += kinetic_en*kinetic_en;
-
-    if(eq_step%steps_av == 0 && eq_step != 0){
-      // Renormalize
-      en_av /= (double) steps_av;
-      square_en_av /= (double) steps_av;
-      en_var = square_en_av - en_av*en_av;
-      cout<<"Kinetic energy variance "<<en_var<<endl;
-      en_av = 0.0;
-      square_en_av = 0.0;
-    }
-
-    ++eq_step;
-  } while( en_var > threshold);
-
-  cout<<"System equilibrated in "<<eq_step<<" steps."<<endl;
-
-}
 
 void cell_volume::md_dynamics(const double& total_time, const double& dt, const double& eps, const double& sig){
   /**
@@ -465,6 +425,10 @@ void cell_volume::md_dynamics(const double& total_time, const double& dt, const 
    */
 
   unsigned num_steps = total_time/dt;
+  unsigned step_av = 100;
+  double ken_mean = 0;
+  double ken_square_mean = 0;
+  double ken_var;
   clock_t start, end;
 
  
@@ -472,13 +436,33 @@ void cell_volume::md_dynamics(const double& total_time, const double& dt, const 
   cout<<"Performing molecular dynamics..."<<endl;
   ofstream out("energy.txt");
   for(unsigned step=0; step<num_steps; ++step){
-    md_step(dt, eps, sig); // lists already updated in md_step
-    getcell_LookUpTable();
-    get_kinetic_en();
-    calculate_potential(eps, sig);
+    md_step(dt, eps, sig); // Lists already updated in md_step
+    getcell_LookUpTable(); // To compute potential we need look up tables
+    get_kinetic_en(); // Get the kinetic energy
+    calculate_potential(eps, sig); // Compute potential energy
     double total_en = kinetic_en + potential;
-    if(step%10 ==0){
-      out<<step<<" "<<kinetic_en<<" "<<potential<<" "<<total_en<<endl;
+    // Update averages
+    ken_mean += kinetic_en;
+    ken_square_mean += kinetic_en*kinetic_en;
+
+    // Compute the averages every step_av steps
+    if(step%step_av == 0 && step != 0){
+      // Divide for the number of steps
+      ken_mean *= 1./((double) step_av);
+      ken_square_mean *= 1./((double) step_av);
+      ken_var = ken_square_mean - ken_mean*ken_mean;
+    
+      // Compute Temperature
+      T = 2./3.*1./N*ken_mean;
+      // Compute specific heat
+      Cv = 3./2.*N*1./(1.-2./3.*ken_var*1/N*1./(T*T));
+
+      // Print on file
+      out<<step<<" "<<kinetic_en<<" "<<potential<<" "<<total_en<<" "<<T<<" "<<Cv<<endl;
+
+      // Reset averages to zero
+      ken_mean = 0;
+      ken_square_mean = 0;
     }
   }
   end = clock();
@@ -488,7 +472,8 @@ void cell_volume::md_dynamics(const double& total_time, const double& dt, const 
 }
 
 complex<double> cell_volume::calculate_ssf(const vec& q){
-  /** Compute the static strcuture factor of WCA potential.
+  /** 
+   * @brief Compute the static strcuture factor of WCA potential.
    *
    * Compute the term entering in average brackets that should be averaged during the mlecular dynamics.
    * See Exercises/CS08_2021.pdf for more details.

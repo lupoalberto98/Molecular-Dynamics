@@ -198,6 +198,7 @@ volume::volume(){
   rho = 0.0;
   L = 10;
   kinetic_en = 0.0;
+  Cv = 0.0;
 }
 
 volume::~volume(){
