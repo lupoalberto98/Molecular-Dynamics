@@ -407,71 +407,6 @@ void cell_volume::md_step(const double& dt, const double& eps, const double& sig
   }
 }
 
-
-
-void cell_volume::md_dynamics(const double& total_time, const double& dt, const double& eps, const double& sig){
-  /**
-   * @brief Perform molecular dynamics for many steps
-   * 
-   * Also compute the static structure factor, the pressure, energy fluctuations, the temperature of the system and heat capacity.
-   * Determine automatically when to average after mixing time
-   * by running the md dynamics until energy fluctuations 
-   * Print statistics in a file for plotting.
-   * 
-   * @param total_time is the time of the simulation
-   * @param dt is the temporal step
-   * @param eps is the energy scale of the system
-   * @param sig is the lenght scale of the system
-   * 
-   */
-
-  unsigned num_steps = total_time/dt;
-  unsigned step_av = 100;
-  double ken_mean = 0;
-  double ken_square_mean = 0;
-  double ken_var;
-  clock_t start, end;
-
- 
-  start = clock();
-  cout<<"Performing molecular dynamics..."<<endl;
-  ofstream out("energy.txt");
-  for(unsigned step=0; step<num_steps; ++step){
-    md_step(dt, eps, sig); // Lists already updated in md_step
-    getcell_LookUpTable(); // To compute potential we need look up tables
-    get_kinetic_en(); // Get the kinetic energy
-    calculate_potential(eps, sig); // Compute potential energy
-    double total_en = kinetic_en + potential;
-    // Update averages
-    ken_mean += kinetic_en;
-    ken_square_mean += kinetic_en*kinetic_en;
-
-    // Compute the averages every step_av steps
-    if(step%step_av == 0 && step != 0){
-      // Divide for the number of steps
-      ken_mean *= 1./((double) step_av);
-      ken_square_mean *= 1./((double) step_av);
-      ken_var = ken_square_mean - ken_mean*ken_mean;
-    
-      // Compute Temperature
-      T = 2./3.*1./N*ken_mean;
-      // Compute specific heat
-      Cv = 3./2.*N*1./(1.-2./3.*ken_var*1/N*1./(T*T));
-
-      // Print on file
-      out<<step<<" "<<kinetic_en<<" "<<potential<<" "<<total_en<<" "<<T<<" "<<Cv<<endl;
-
-      // Reset averages to zero
-      ken_mean = 0;
-      ken_square_mean = 0;
-    }
-  }
-  end = clock();
-  cout<<"Total time to perform Molecular Dynamics: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
-  out.close();
-
-}
-
 complex<double> cell_volume::calculate_ssf(const vec& q){
   /** 
    * @brief Compute the static strcuture factor of WCA potential.
@@ -495,3 +430,70 @@ complex<double> cell_volume::calculate_ssf(const vec& q){
   }
   return ssf;
 }
+
+
+void cell_volume::md_equilibrate(const unsigned& num_steps, const double& dt, const double& eps, const double& sig, const double& T0){
+  /**
+   * @brief Perform molecular dynamics for many steps
+   * 
+   * Also compute the static structure factor, the pressure, energy fluctuations, the temperature of the system and heat capacity.
+   * Determine automatically when to average after mixing time
+   * by running the md dynamics until energy fluctuations 
+   * Print statistics in a file for plotting.
+   * 
+   * @param num_steps is the number of steps during equilibration
+   * @param dt is the temporal step
+   * @param eps is the energy scale of the system
+   * @param sig is the lenght scale of the system
+   * @param T0 is the designed temperature for equilibration
+   * 
+   */
+
+  unsigned step_av = num_steps/10;
+  unsigned save_step = num_steps/1000;
+  double ken_mean = 0;
+  unsigned count = 0;
+  clock_t start, end;
+
+ 
+  start = clock();
+  cout<<"Equilibrating the system..."<<endl;
+  ofstream out("energy.txt");
+  for(unsigned step=0; step<num_steps; ++step){
+    md_step(dt, eps, sig); // Lists already updated in md_step
+    if(step%save_step == 0){
+      get_kinetic_en(); // Get the kinetic energy
+
+      // Update average
+      ken_mean += kinetic_en;
+      ++ count;
+
+      // Compute the averages every step_av steps
+      if(step%step_av == 0 ){
+        // Divide for the number of steps
+        ken_mean /= (double) count;
+      
+        // Compute the temperature
+        T = 2./3.*1./N*ken_mean;
+
+        // Rescale velocities to match input temperature
+        for(unsigned n=0; n<N; ++n){
+          configuration[n].vx *= sqrt(T0/T);
+          configuration[n].vy *= sqrt(T0/T);
+          configuration[n].vy *= sqrt(T0/T);
+        }
+
+        // Reset averages to zero
+        ken_mean = 0;
+        count = 0;
+      }
+    }
+    
+  }
+  end = clock();
+  cout<<"Total time to perform equilibration: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
+  out.close();
+
+}
+
+

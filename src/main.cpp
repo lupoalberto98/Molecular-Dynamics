@@ -42,7 +42,9 @@ int main()
 
   
   // Molecular dynamics
-  A.md_dynamics(10, 0.001, 1, 1);
+  A.md_equilibrate(10000, 0.001, 1, 1, 1);
+
+ 
   
   
   // Final calculations
