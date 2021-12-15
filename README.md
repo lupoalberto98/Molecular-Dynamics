@@ -3,11 +3,11 @@ C++ implementation of molecular dynamics for the course "Computer simulations in
 
 # Installation
 Install the program by downloading it with
-´git clone https://github.com/lupoalberto98/Molecular-Dynamics.git``
+`git clone https://github.com/lupoalberto98/Molecular-Dynamics.git`
 The move into src directory
-´cd Molecular-Dynamics/src´
+`cd Molecular-Dynamics/src`
 Finally compile
-´make´
+`make`
 
 
 
