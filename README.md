@@ -2,12 +2,12 @@
 C++ implementation of molecular dynamics for the course "Computer simulations in Statistical Physics" at Innsbruck University
 
 # Installation
-Install the program by downloading it with
-`git clone https://github.com/lupoalberto98/Molecular-Dynamics.git`
-The move into src directory
-`cd Molecular-Dynamics/src`
-Finally compile
-`make`
+Install the program by downloading it with <br>
+`git clone https://github.com/lupoalberto98/Molecular-Dynamics.git` <br>
+The move into src directory <br>
+`cd Molecular-Dynamics/src` <br>
+Finally compile <br>
+`make` <br>
 
 
 
