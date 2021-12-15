@@ -77,6 +77,7 @@ class volume
     double L; // Box side length
     double T; // Temperature of the system
     double kinetic_en; // Kinetic energy
+    double Cv;
 
     ofstream debug;
     vec cdm; // Center of mass

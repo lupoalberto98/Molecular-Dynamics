@@ -27,21 +27,22 @@ int main()
   A.savecell_LookUpTable("cell_LookUpTable.txt");
   A.saveConfiguration("particles.txt"); 
 
-  system( "read -n 1 -s -p \"Press any key to continue...\n\"" );
+  
   
   /*
+  system( "read -n 1 -s -p \"Press any key to continue...\n\"" );
   // Uniform the system
   MarkovSampler MC;
   MC.__init__(5000, 0.1);
   MC.CanonicalSampler(A);
   */
+  
+  system( "read -n 1 -s -p \"Press any key to continue...\n\"" );
 
-  // Equilibrate the sytems with mix_system
-  A.mix_system(0.001, 1, 1, 100, 0.1);
 
   
   // Molecular dynamics
-  //A.md_dynamics(10, 0.001, 1, 1);
+  A.md_dynamics(10, 0.001, 1, 1);
   
   
   // Final calculations
