@@ -420,16 +420,17 @@ void cell_volume::mix_system(const double& dt, const double& eps, const double& 
   double en_av = 0.0;
   double square_en_av = 0.0;
   cout<<"Mixing the system..."<<endl;
-  do {
+  while( eq_step < 1000){
     // Perform md step
     md_step(dt, eps, sig); // lists already updated in md_step
-
-    // Compute kinetic energy
+    getcell_LookUpTable();
+    // Compute total energy
     get_kinetic_en();
-
+    calculate_potential(eps, sig);
+    double total_en = potential + kinetic_en;
     // Update averages
-    en_av += kinetic_en;
-    square_en_av += kinetic_en*kinetic_en;
+    en_av += total_en;
+    square_en_av += total_en*total_en;
 
     if(eq_step%steps_av == 0 && eq_step != 0){
       // Renormalize
@@ -442,7 +443,7 @@ void cell_volume::mix_system(const double& dt, const double& eps, const double& 
     }
 
     ++eq_step;
-  } while( en_var > threshold);
+  } 
 
   cout<<"System equilibrated in "<<eq_step<<" steps."<<endl;
 

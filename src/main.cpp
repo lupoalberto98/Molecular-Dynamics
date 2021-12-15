@@ -26,14 +26,15 @@ int main()
   A.save_particle_list("particle_list.txt");
   A.savecell_LookUpTable("cell_LookUpTable.txt");
   A.saveConfiguration("particles.txt"); 
-  
+
+  system( "read -n 1 -s -p \"Press any key to continue...\n\"" );
   
   /*
   // Uniform the system
   MarkovSampler MC;
   MC.__init__(5000, 0.1);
   MC.CanonicalSampler(A);
-*/
+  */
 
   // Equilibrate the sytems with mix_system
   A.mix_system(0.001, 1, 1, 100, 0.1);

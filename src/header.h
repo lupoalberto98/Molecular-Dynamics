@@ -3,12 +3,13 @@
 #include <cmath>
 #include <fstream>
 #include <random>
-//#include <math.h>
+#include <math.h>
 #include <string>
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
 #include <complex>
+#include <cstdlib>
 
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
@@ -143,7 +144,6 @@ class cell_volume : public volume
     void calculate_potential(const double&, const double&);
     void calculate_forces(const double&, const double&);
     void md_step(const double&, const double&, const double&);
-    void mix_system(const double&, const double&, const double&, const unsigned&, const double&);
     void md_dynamics(const double&, const double&, const double&, const double&);
     complex<double> calculate_ssf(const vec&);
 
