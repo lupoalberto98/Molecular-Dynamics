@@ -43,6 +43,7 @@
 
 # Produced by Mac OS
 .dSYM
+.DS_Store
 
 ## Python style .gitignore
 
