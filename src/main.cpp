@@ -46,6 +46,7 @@ int main()
 
   // Compute ssf for q = vec(0)
   vec q;
+  A.getcell_LookUpTable();
   complex<double> ssf = A.calculate_ssf(q, 0.001, 1, 1);
   cout<<real(ssf)<<" "<<imag(ssf)<<endl;
   
