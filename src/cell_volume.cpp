@@ -524,6 +524,7 @@ double cell_volume::calculate_heat_capacity(const unsigned& num_steps, const uns
    * Warning: to have meaningful results equilibrate the system before
    * 
    * @param num_steps is the total number of steps
+   * @param num_save is how many steps to save the simulation
    * @param dt is the temporal step
    * @param eps is the energy scale of the system
    * @param sig is the lenght scale of the system
@@ -559,4 +560,79 @@ double cell_volume::calculate_heat_capacity(const unsigned& num_steps, const uns
   end = clock();
   cout<<"Total time to compute heat capacity: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
   return heat_capacity;
+}
+
+
+double cell_volume::calculate_pressure(const unsigned& num_steps, const unsigned& num_save, const double& dt, const double& eps, const double& sig){
+  /**
+   * @brief Compute the pressure of the gas by virial expansion
+   * 
+   * @param num_steps is the total number of steps
+   * @param num_save is how many steps to save the simulation
+   * @param dt is the temporal step
+   * @param eps is the energy scale of the system
+   * @param sig is the lenght scale of the system
+   * 
+   */
+
+  double ken_mean = 0;
+  unsigned count = 0;
+  double virial = 0;
+  clock_t start, end;
+
+ 
+  start = clock();
+  cout<<"Computing pressure..."<<endl;
+  for(unsigned step=0; step<num_steps; ++step){
+    md_step(dt, eps, sig); // Lists already updated in md_step
+    if(step%num_save == 0){
+      get_kinetic_en();
+      // Update average
+      ken_mean += kinetic_en;
+      ++ count;
+      // Compute virial term
+      for(unsigned i=0; i<N-1; ++i){
+        for(unsigned j=i+1; j<N; ++j){
+          // Copmute distance
+          double r = distance(configuration[i], configuration[j]);
+          // Compute magnitude of the radial repulsive force
+          double fr = 24.0*eps*(2*pow(sig/r,12.0) - pow(sig/r,6.0))/(r*r);
+          virial += fr*r;
+        }
+      }
+    }
+  }
+  ken_mean /= (double) count;
+  double T_mean = 2./(3.*N)*ken_mean;
+  double pressure = N*T_mean + 1./3.*virial;
+  pressure /= L*L*L;
+  end = clock();
+  cout<<"Total time to compute pressure: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
+
+  return pressure;
+}
+
+vec cell_volume::calculate_mean_square_displacement(const unsigned& num_steps, const unsigned& num_save, const double& dt, const double& eps, const double& sig){
+  /**
+   * @brief Compute the mean square displacement, save in a file and compute diffusion copefficient deriving last values
+   * 
+   * @param num_steps is the total number of steps
+   * @param num_save is how many steps to save the simulation
+   * @param dt is the temporal step
+   * @param eps is the energy scale of the system
+   * @param sig is the lenght scale of the system
+   * 
+   */
+  vec msd;
+  clock_t start, end;
+
+ 
+  start = clock();
+  cout<<"Computing mean square displacement..."<<endl;
+  for(unsigned step=0; step<num_steps; ++step){
+    md_step(dt, eps, sig); // Lists already updated in md_step
+    if(step%num_save == 0){
+
+    }
+  }
 }

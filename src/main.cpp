@@ -47,6 +47,10 @@ int main()
   // Heat capacity
   double heat_capacity = A.calculate_heat_capacity(1000,10, 0.001, 1,1);
   cout<<"Heat capacity: "<<heat_capacity<<endl;
+
+  // Pressure
+  double pressure = A.calculate_pressure(1000,10, 0.001, 1,1);
+  cout<<"Pressure: "<<pressure<<endl;
   
   // Final calculations
   A.fill_lists();
