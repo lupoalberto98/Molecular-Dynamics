@@ -425,7 +425,7 @@ void cell_volume::md_equilibrate(const unsigned& num_steps, const double& dt, co
    */
 
   unsigned step_av = num_steps/10;  
-  unsigned save_step = num_steps/1000;
+  unsigned save_step = num_steps/1000; 
   double ken_mean = 0;
   unsigned count = 0;
   clock_t start, end;
@@ -438,6 +438,11 @@ void cell_volume::md_equilibrate(const unsigned& num_steps, const double& dt, co
     md_step(dt, eps, sig); // Lists already updated in md_step
     if(step%save_step == 0){
       get_kinetic_en(); // Get the kinetic energy
+      getcell_LookUpTable(); // Get look up tables
+      calculate_potential(eps, sig); // Compute potential energy
+
+      // Save
+      out<<kinetic_en<<" "<<potential<<" "<<kinetic_en+potential<<endl;
 
       // Update average
       ken_mean += kinetic_en;
@@ -485,7 +490,7 @@ complex<double> cell_volume::calculate_ssf(const vec& q, const double& dt, const
    * 
   */
 
-  unsigned num_steps = 10000;
+  unsigned num_steps = 1000;
   unsigned step_av = num_steps/10;  // typically 1000
   unsigned save_step = num_steps/1000; // typically 10
   complex<double> ssf = 0.0;
@@ -513,3 +518,45 @@ return ssf;
   
 }
 
+double cell_volume::calculate_heat_capacity(const unsigned& num_steps, const unsigned& num_save, const double& dt, const double& eps, const double& sig){
+  /**
+   * @brief Compute the heat capacity by kinetic energy fluctuations
+   * Warning: to have meaningful results equilibrate the system before
+   * 
+   * @param num_steps is the total number of steps
+   * @param dt is the temporal step
+   * @param eps is the energy scale of the system
+   * @param sig is the lenght scale of the system
+   * 
+   */
+
+  double ken_mean = 0;
+  double ken_square_mean = 0;
+  unsigned count = 0;
+  clock_t start, end;
+
+ 
+  start = clock();
+  cout<<"Computing heat capacity..."<<endl;
+  
+  for(unsigned step=0; step<num_steps; ++step){
+    md_step(dt, eps, sig); // Lists already updated in md_step
+    if(step%num_save == 0){
+      get_kinetic_en(); // Get the kinetic energy
+      
+      // Update average
+      ken_mean += kinetic_en;
+      ken_square_mean += kinetic_en*kinetic_en;
+      ++ count;
+    }
+  }
+  // Compute averages
+  ken_mean /= (double) count;
+  ken_square_mean /= (double) count;
+  double T_mean = 2.*ken_mean/(3.*N);
+  double ken_var = ken_square_mean - ken_mean*ken_mean;
+  double heat_capacity = 3./2.*N/(1.-2.*ken_var/(3.*N*T_mean*T_mean));
+  end = clock();
+  cout<<"Total time to compute heat capacity: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
+  return heat_capacity;
+}

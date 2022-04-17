@@ -44,12 +44,9 @@ int main()
   // Molecular dynamics
   A.md_equilibrate(10000, 0.001, 1, 1, 1);
 
-  // Compute ssf for q = vec(0)
-  vec q;
-  A.getcell_LookUpTable();
-  complex<double> ssf = A.calculate_ssf(q, 0.001, 1, 1);
-  cout<<real(ssf)<<" "<<imag(ssf)<<endl;
-  
+  // Heat capacity
+  double heat_capacity = A.calculate_heat_capacity(1000,10, 0.001, 1,1);
+  cout<<"Heat capacity: "<<heat_capacity<<endl;
   
   // Final calculations
   A.fill_lists();
@@ -57,8 +54,8 @@ int main()
   A.get_kinetic_en();
   A.calculate_potential(1, 1);
   A.calculate_forces(1,1);
-  cout<<"Final potential "<<A.potential<<endl;
-  cout<<"Final kinetic energy "<<A.kinetic_en<<endl;
+  cout<<"Final potential energy: "<<A.potential<<endl;
+  cout<<"Final kinetic energy: "<<A.kinetic_en<<endl;
 
   // Final savings
   A.save_cell_list("cell_list.txt");
