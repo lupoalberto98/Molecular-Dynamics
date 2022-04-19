@@ -53,7 +53,7 @@ int main()
   cout<<"Pressure: "<<pressure<<endl;
 
   // Mean square displacement
-  vec diff_coeff = A.calculate_mean_square_displacement(1000,10, 0.001, 1,1);
+  vec diff_coeff = A.calculate_msd_vautocorr(1000,10, 0.001, 1,1);
   cout<<"Diffusion coefficient: "<<diff_coeff.x<<" "<<diff_coeff.y<<" "<<diff_coeff.z<<endl;
   
   // Final calculations

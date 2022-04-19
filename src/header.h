@@ -204,8 +204,8 @@ class cell_volume : public volume
     complex<double> calculate_ssf(const vec&, const double&, const double&, const double&);
     double calculate_heat_capacity(const unsigned&, const unsigned&, const double&, const double&, const double&);
     double calculate_pressure(const unsigned&, const unsigned&, const double&, const double&, const double&);
-    vec calculate_mean_square_displacement(const unsigned&, const unsigned&, const double&, const double&, const double&);
-
+    vec calculate_msd_vautocorr(const unsigned&, const unsigned&, const double&, const double&, const double&);
+   
 };
 
 class MarkovSampler 

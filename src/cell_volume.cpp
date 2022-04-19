@@ -612,9 +612,10 @@ double cell_volume::calculate_pressure(const unsigned& num_steps, const unsigned
   return pressure;
 }
 
-vec cell_volume::calculate_mean_square_displacement(const unsigned& num_steps, const unsigned& num_save, const double& dt, const double& eps, const double& sig){
+vec cell_volume::calculate_msd_vautocorr(const unsigned& num_steps, const unsigned& num_save, const double& dt, const double& eps, const double& sig){
   /**
    * @brief Compute the mean square displacement, save in a file and compute diffusion copefficient deriving last values
+   * and copmute velocity auto-correlation function
    * 
    * @param num_steps is the total number of steps
    * @param num_save is how many steps to save the simulation
@@ -623,30 +624,41 @@ vec cell_volume::calculate_mean_square_displacement(const unsigned& num_steps, c
    * @param sig is the lenght scale of the system
    * 
    */
-  vec msd, msd_semilast, diff_coeff;
+  vec msd, msd_semilast, diff_coeff, v_autocorr;
   clock_t start, end;
   // Take initial configuration
   vector <particle> initial_configuration(configuration, configuration+N);
   unsigned integer_part = num_steps/num_save;
 
   start = clock();
-  ofstream out("msd.txt");
-  cout<<"Computing mean square displacement..."<<endl;
+  ofstream out("msd_vcorr.txt");
+  cout<<"Computing mean square displacement and velocity auto-correlation function..."<<endl;
   for(unsigned step=0; step<num_steps; ++step){
     md_step(dt, eps, sig); // Lists already updated in md_step
     if(step%num_save == 0){
       msd.x = msd.y = msd.z = 0;
+      v_autocorr.x = v_autocorr.y = v_autocorr.z = 0;
       for(unsigned n=0; n<N; ++n){
+        // Mean square displacement
         msd.x += (configuration[n].x - initial_configuration[n].x)*(configuration[n].x - initial_configuration[n].x);
         msd.y += (configuration[n].y - initial_configuration[n].y)*(configuration[n].y - initial_configuration[n].y);
         msd.z += (configuration[n].z - initial_configuration[n].z)*(configuration[n].z - initial_configuration[n].z);
+        // Velocity auto-correlation function
+        v_autocorr.x += configuration[n].vx*initial_configuration[n].vx;
+        v_autocorr.y += configuration[n].vy*initial_configuration[n].vy;
+        v_autocorr.z *= configuration[n].vz*initial_configuration[n].vz;
       }
-      // Divide to take the average
+      // Divide to take the averages
       msd.x /= (double) N;
       msd.y /= (double) N;
       msd.z /= (double) N;
+      v_autocorr.x /= (double) N;
+      v_autocorr.y /= (double) N;
+      v_autocorr.z /= (double) N;
+
       // Print on a file
-      out<<msd.x<<" "<<msd.y<<" "<<msd.z<<endl;
+      out<<msd.x<<" "<<msd.y<<" "<<msd.z<<" "<<v_autocorr.x<<" "<<v_autocorr.y<<" "<<v_autocorr.z<<endl;
+
       // Take second and third to last msd to compute diffusion coefficient
       if(step==num_steps-3*integer_part){msd_semilast = msd;}
     }
@@ -658,6 +670,7 @@ vec cell_volume::calculate_mean_square_displacement(const unsigned& num_steps, c
 
   out.close();
   end = clock();
-  cout<<"Total time to compute mean square displacement: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
+  cout<<"Total time to compute msd and velocity auto-correlation function: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
   return diff_coeff;
 }
+
