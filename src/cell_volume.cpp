@@ -623,16 +623,41 @@ vec cell_volume::calculate_mean_square_displacement(const unsigned& num_steps, c
    * @param sig is the lenght scale of the system
    * 
    */
-  vec msd;
+  vec msd, msd_semilast, diff_coeff;
   clock_t start, end;
+  // Take initial configuration
+  vector <particle> initial_configuration(configuration, configuration+N);
+  unsigned integer_part = num_steps/num_save;
 
- 
   start = clock();
+  ofstream out("msd.txt");
   cout<<"Computing mean square displacement..."<<endl;
   for(unsigned step=0; step<num_steps; ++step){
     md_step(dt, eps, sig); // Lists already updated in md_step
     if(step%num_save == 0){
-
+      msd.x = msd.y = msd.z = 0;
+      for(unsigned n=0; n<N; ++n){
+        msd.x += (configuration[n].x - initial_configuration[n].x)*(configuration[n].x - initial_configuration[n].x);
+        msd.y += (configuration[n].y - initial_configuration[n].y)*(configuration[n].y - initial_configuration[n].y);
+        msd.z += (configuration[n].z - initial_configuration[n].z)*(configuration[n].z - initial_configuration[n].z);
+      }
+      // Divide to take the average
+      msd.x /= (double) N;
+      msd.y /= (double) N;
+      msd.z /= (double) N;
+      // Print on a file
+      out<<msd.x<<" "<<msd.y<<" "<<msd.z<<endl;
+      // Take second and third to last msd to compute diffusion coefficient
+      if(step==num_steps-3*integer_part){msd_semilast = msd;}
     }
   }
+  // Compute derivative and save in msd (output diffusion coefficient)
+  diff_coeff.x = (msd.x-msd_semilast.x)/(4*dt);
+  diff_coeff.y = (msd.y-msd_semilast.y)/(4*dt);
+  diff_coeff.z = (msd.z-msd_semilast.z)/(4*dt);
+
+  out.close();
+  end = clock();
+  cout<<"Total time to compute mean square displacement: "<<1.0*(end-start)/CLOCKS_PER_SEC<<" s"<<endl;
+  return diff_coeff;
 }

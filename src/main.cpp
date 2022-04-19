@@ -51,6 +51,10 @@ int main()
   // Pressure
   double pressure = A.calculate_pressure(1000,10, 0.001, 1,1);
   cout<<"Pressure: "<<pressure<<endl;
+
+  // Mean square displacement
+  vec diff_coeff = A.calculate_mean_square_displacement(1000,10, 0.001, 1,1);
+  cout<<"Diffusion coefficient: "<<diff_coeff.x<<" "<<diff_coeff.y<<" "<<diff_coeff.z<<endl;
   
   // Final calculations
   A.fill_lists();
